@@ -65,6 +65,8 @@ std::unique_ptr<Pass> createLinalgGeneralizationPass();
 /// work on primitive types, if possible.
 std::unique_ptr<Pass> createLinalgDetensorizePass();
 
+std::unique_ptr<Pass> createRemoveUnusedIntermediatesPass();
+
 //===----------------------------------------------------------------------===//
 // Registration
 //===----------------------------------------------------------------------===//

@@ -152,4 +152,18 @@ def LinalgDetensorize : InterfacePass<"linalg-detensorize", "FunctionOpInterface
   ];
 }
 
+def LinalgRemoveUnusedIntermediates
+    : Pass<"linalg-remove-unused-intermediates"> {
+  let summary = "Remove unused intermediate values.";
+  let constructor = [{
+    mlir::createRemoveUnusedIntermediatesPass()
+  }];
+  let description = [{
+    This pass removes unused linalg intermediates.
+  }];
+
+  let dependentDialects = ["linalg::LinalgDialect"];
+}
+
+
 #endif // MLIR_DIALECT_LINALG_PASSES

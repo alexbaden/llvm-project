@@ -3,6 +3,7 @@
 #include "mlir/IR/OwningOpRef.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllExtensions.h"
+#include "mlir/InitAllPasses.h"
 #include "mlir/Parser/Parser.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/FileUtilities.h"
@@ -51,13 +52,48 @@ int main(int argc, char **argv) {
   mlir::registerAllExtensions(registry);
   mlir::MLIRContext context(registry, mlir::MLIRContext::Threading::DISABLED);
   context.allowUnregisteredDialects(true);
-  mlir::OwningOpRef<mlir::Operation *> op =
-      mlir::parseSourceFile(sourceMgr, &context);
-  if (!op) {
+
+  // load and parse the mlir sources
+  mlir::OwningOpRef<mlir::ModuleOp> module =
+      mlir::parseSourceFile<mlir::ModuleOp>(sourceMgr, &context);
+  if (!module) {
     llvm::errs() << "Failed to parse input file";
     exit(1);
   }
-  output->os() << *(op.get()) << "\n";
+
+  llvm::outs() << "### Before passes: ###\n\n";
+  module->dump();
+
+  // run some passes
+  mlir::PassManager pm(module.get()->getName());
+  // Apply any generic pass manager command line options and run the pipeline.
+  if (mlir::failed(mlir::applyPassManagerCLOptions(pm)))
+    return -1;
+
+  // TODO: differentiate between this pass manager and (see toyc.cpp ch6)
+  mlir::OpPassManager &optPM = pm.nest<mlir::func::FuncOp>();
+  optPM.addPass(mlir::createLinalgGeneralizationPass());
+  optPM.addPass(mlir::createRemoveUnusedIntermediatesPass());
+
+#if 0
+  pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
+  pm.addPass(mlir::createConvertShapeToStandardPass());
+  pm.addPass(mlir::createSCFBufferizePass());
+  pm.addPass(mlir::createLinalgBufferizePass());
+  pm.addPass(mlir::createLowerAffinePass());
+  pm.addPass(mlir::createConvertSCFToCFPass());
+  pm.addPass(mlir::createConvertLinalgToLoopsPass());
+  pm.addPass(mlir::createLowerAffinePass());
+  pm.addPass(mlir::createConvertToLLVMPass());
+#endif
+
+  if (mlir::failed(pm.run(*module))) {
+    llvm::errs() << "Pass manager failed!";
+    exit(1);
+  }
+
+  llvm::outs() << "### After passes: ###\n\n";
+  module->dump();
 
   return 0;
 }

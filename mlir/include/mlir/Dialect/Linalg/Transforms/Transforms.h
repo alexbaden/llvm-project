@@ -687,6 +687,9 @@ FailureOr<GenericOp> interchangeGenericOp(RewriterBase &rewriter,
 FailureOr<GenericOp> generalizeNamedOp(RewriterBase &rewriter,
                                        LinalgOp namedOp);
 
+FailureOr<GenericOp> removeUnusedIntermediateOp(RewriterBase &rewriter,
+                                                LinalgOp namedOp);
+
 /// Create a namedOp from the given GenericOp and replace the GenericOp.
 /// Currently we can specialize only trivial linalg copy operations.
 FailureOr<LinalgOp> specializeGenericOp(RewriterBase &rewriter,
@@ -1316,6 +1319,23 @@ struct LinalgGeneralizationPattern
   }
 };
 
+struct LinalgRemoveUnusedIntermediatesPattern
+    : public OpInterfaceRewritePattern<LinalgOp> {
+  using OpInterfaceRewritePattern<LinalgOp>::OpInterfaceRewritePattern;
+
+  /// `matchAndRewrite` implementation that returns the significant
+  /// transformed pieces of IR.
+  FailureOr<GenericOp>
+  returningMatchAndRewrite(LinalgOp op, PatternRewriter &rewriter) const {
+    return removeUnusedIntermediateOp(rewriter, op);
+  }
+
+  LogicalResult matchAndRewrite(LinalgOp op,
+                                PatternRewriter &rewriter) const override {
+    return returningMatchAndRewrite(op, rewriter);
+  }
+};
+
 /// Vectorization pattern for memref::CopyOp.
 struct CopyVectorizationPattern : public OpRewritePattern<memref::CopyOp> {
   using OpRewritePattern<memref::CopyOp>::OpRewritePattern;
@@ -1466,6 +1486,9 @@ void populateLinalgTilingCanonicalizationPatterns(RewritePatternSet &patterns);
 /// Populates `patterns` with patterns to convert spec-generated named ops to
 /// linalg.generic ops.
 void populateLinalgNamedOpsGeneralizationPatterns(RewritePatternSet &patterns);
+
+void populateLinalgRemoveUnusedIntermediatesPatterns(
+    RewritePatternSet &patterns);
 
 /// Linalg decompose convolutions patterns
 
