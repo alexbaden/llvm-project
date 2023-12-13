@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   // TODO: differentiate between this pass manager and (see toyc.cpp ch6)
   mlir::OpPassManager &optPM = pm.nest<mlir::func::FuncOp>();
   optPM.addPass(mlir::createLinalgGeneralizationPass());
-  optPM.addPass(mlir::createRemoveUnusedIntermediatesPass());
+  pm.addPass(mlir::createRemoveUnusedIntermediatesPass());
 
 #if 0
   pm.addPass(mlir::createLinalgElementwiseOpFusionPass());

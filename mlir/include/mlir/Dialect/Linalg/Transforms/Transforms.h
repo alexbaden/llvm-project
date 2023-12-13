@@ -1319,6 +1319,7 @@ struct LinalgGeneralizationPattern
   }
 };
 
+#if 0
 struct LinalgRemoveUnusedIntermediatesPattern
     : public OpInterfaceRewritePattern<LinalgOp> {
   using OpInterfaceRewritePattern<LinalgOp>::OpInterfaceRewritePattern;
@@ -1335,6 +1336,7 @@ struct LinalgRemoveUnusedIntermediatesPattern
     return returningMatchAndRewrite(op, rewriter);
   }
 };
+#endif
 
 /// Vectorization pattern for memref::CopyOp.
 struct CopyVectorizationPattern : public OpRewritePattern<memref::CopyOp> {
@@ -1487,8 +1489,10 @@ void populateLinalgTilingCanonicalizationPatterns(RewritePatternSet &patterns);
 /// linalg.generic ops.
 void populateLinalgNamedOpsGeneralizationPatterns(RewritePatternSet &patterns);
 
+#if 0
 void populateLinalgRemoveUnusedIntermediatesPatterns(
     RewritePatternSet &patterns);
+#endif
 
 /// Linalg decompose convolutions patterns
 

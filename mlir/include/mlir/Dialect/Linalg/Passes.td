@@ -153,7 +153,7 @@ def LinalgDetensorize : InterfacePass<"linalg-detensorize", "FunctionOpInterface
 }
 
 def LinalgRemoveUnusedIntermediates
-    : Pass<"linalg-remove-unused-intermediates"> {
+    : Pass<"linalg-remove-unused-intermediates", "ModuleOp"> {
   let summary = "Remove unused intermediate values.";
   let constructor = [{
     mlir::createRemoveUnusedIntermediatesPass()
